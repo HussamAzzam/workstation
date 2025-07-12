@@ -1,0 +1,8 @@
+[build]
+builder = "NIXPACKS"
+
+[build.buildCommand]
+cmd = "npm run install:all && npm run build && cp -r frontend/dist backend/"
+
+[deploy]
+startCommand = "npm start"
