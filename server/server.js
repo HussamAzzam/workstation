@@ -24,7 +24,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // API routes
-app.use(users);
+app.use('/', users);
 
 // Catch all handler - send back React's index.html file for any non-API routes
 app.get('*', (req, res) => {
