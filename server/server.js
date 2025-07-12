@@ -21,15 +21,38 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Serve static files from dist directory
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Fix: Remove the redundant "/routes" prefix since your routes already define "/users"
+// API routes
 app.use("/", users);
 
-// Catch-all handler for SPA routing (should be last)
-// Express 5 requires explicit parameter naming for wildcards
-app.get('/:path(.*)', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// Alternative approach: Handle SPA routing without wildcards
+// Define specific routes that should serve the SPA
+const spaRoutes = [
+    '/',
+    '/dashboard',
+    '/settings',
+    '/tasks',
+    '/profile'
+    // Add any other client-side routes your app uses
+];
+
+spaRoutes.forEach(route => {
+    app.get(route, (req, res) => {
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    });
+});
+
+// For any other routes, try to serve static files first, then fallback to index.html
+app.use((req, res, next) => {
+    // If it's not an API route and file doesn't exist, serve index.html
+    if (!req.path.startsWith('/users') && !req.path.startsWith('/api')) {
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    } else {
+        next();
+    }
 });
 
 const startServer = async() => {
