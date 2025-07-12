@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? ['https://your-production-domain.com']
+        ? ['workstation-production.up.railway.app']
         : ['http://localhost:5173', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type'],
