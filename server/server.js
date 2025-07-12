@@ -3,7 +3,6 @@ import express from "express";
 import cors from "cors";
 import path from 'path';
 import { fileURLToPath } from 'url';
-import users from "./routes/users.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,14 +18,17 @@ app.use(cors({
 }));
 
 app.use(express.json());
-
-// Serve static files from the client build folder
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
-// API routes
-app.use('/', users);
+// TEMPORARY: Comment out the users routes to test
+// import users from "./routes/users.js";
+// app.use('/', users);
 
-// Catch all handler - send back React's index.html file for any non-API routes
+// Test route
+app.get('/test', (req, res) => {
+    res.json({ message: 'Server is working!' });
+});
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
