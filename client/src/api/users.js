@@ -1,7 +1,8 @@
 import axios from "axios";
 
+// Use environment variables for production deployment
 const PORT = import.meta.env.VITE_PORT || 3000;
-const URL = `http://localhost:${PORT}`;
+const BASE_URL = import.meta.env.VITE_API_URL || `http://localhost:${PORT}`;
 
 // Generate or retrieve user ID from localStorage
 export const getUserId = () => {
@@ -29,8 +30,8 @@ export const getOrCreateUser = async () => {
 
 export const getUserByCustomId = async (userId) => {
   try {
-    // Changed route to match backend
-    const response = await axios.get(`${URL}/users/${userId}`);
+    // This will call /users/:id endpoint
+    const response = await axios.get(`${BASE_URL}/users/${userId}`);
     return { success: true, data: response.data };
   } catch (e) {
     let errorMessage = "Something went wrong!";
@@ -81,7 +82,8 @@ export const createUserWithCustomId = async (userId) => {
       ],
       tasks: []
     };
-    const response = await axios.post(`${URL}/users`, newUser);
+    // This will call /users endpoint
+    const response = await axios.post(`${BASE_URL}/users`, newUser);
     return { success: true, data: response.data };
   } catch (e) {
     let errorMessage = "Something went wrong!";
@@ -105,7 +107,8 @@ export const createUserWithCustomId = async (userId) => {
 
 export const updateUser = async (userId, updatedData) => {
   try {
-    const response = await axios.patch(`${URL}/users/${userId}`, updatedData);
+    // This will call /users/:id endpoint
+    const response = await axios.patch(`${BASE_URL}/users/${userId}`, updatedData);
     if (response) {
       return { success: true, data: response.data };
     }
@@ -139,7 +142,8 @@ export const getCurrentUserId = () => {
 
 export const deleteUser = async (userId) => {
   try {
-    const response = await axios.delete(`${URL}/users/${userId}`);
+    // This will call /users/:id endpoint
+    const response = await axios.delete(`${BASE_URL}/users/${userId}`);
     return { success: true, data: response.data };
   } catch (e) {
     let errorMessage = "Something went wrong!";
