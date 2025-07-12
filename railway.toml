@@ -1,8 +1,0 @@
-[build]
-builder = "NIXPACKS"
-
-[build.buildCommand]
-cmd = "npm run install:all && npm run build && cp -r client/dist server/"
-
-[deploy]
-startCommand = "npm start"
