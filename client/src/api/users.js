@@ -3,6 +3,7 @@ import axios from "axios";
 // Use environment variables for production deployment
 const PORT = import.meta.env.VITE_PORT || 3000;
 const BASE_URL = import.meta.env.VITE_API_URL || `http://localhost:${PORT}`;
+console.log(BASE_URL);
 
 // Generate or retrieve user ID from localStorage
 export const getUserId = () => {
