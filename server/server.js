@@ -27,7 +27,8 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.use("/", users);
 
 // Catch-all handler for SPA routing (should be last)
-app.get('*', (req, res) => {
+// Express 5 requires explicit parameter naming for wildcards
+app.get('/:path(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
