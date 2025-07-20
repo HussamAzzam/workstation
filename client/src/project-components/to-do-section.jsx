@@ -1,7 +1,8 @@
+import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Trash2, Pencil, Check, Ellipsis, EyeOff, Eye } from 'lucide-react';
 
-function ToDoSection({ className, userTasks, onUpdateTasks, onDeleteAllTasks, onDeleteOneTask, onUpdateTaskData, onDeleteCompletedTasks }) {
+function ToDoSectionComponent({ className, userTasks, onUpdateTasks, onDeleteAllTasks, onDeleteOneTask, onUpdateTaskData, onDeleteCompletedTasks }) {
   // State
   const [tasks, setTasks] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -568,4 +569,5 @@ function ToDoSection({ className, userTasks, onUpdateTasks, onDeleteAllTasks, on
   );
 }
 
+const ToDoSection = React.memo(ToDoSectionComponent);
 export default ToDoSection;

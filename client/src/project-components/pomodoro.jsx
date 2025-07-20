@@ -1,8 +1,9 @@
+import React from "react";
 import { useState, useEffect, useRef } from "react";
 import Clock from './clock.jsx';
 
 
-function Pomodoro({ className, timerSettings, onClockClick, isClockRunning, onUpdateClockState, autoStart, userPanels, onUpdatePanel, isSessionRestarted}) {
+function PomodoroComponent({ className, timerSettings, onClockClick, isClockRunning, onUpdateClockState, autoStart, userPanels, onUpdatePanel, isSessionRestarted}) {
   //States
   const safePanels = Array.isArray(userPanels) ? userPanels : [
     {name: "Pomodoro", sessions: 0},
@@ -354,5 +355,5 @@ function Pomodoro({ className, timerSettings, onClockClick, isClockRunning, onUp
     </div>
   );
 }
-
+const Pomodoro = React.memo(PomodoroComponent);
 export default Pomodoro;

@@ -1,9 +1,10 @@
 import Logo from './logo.jsx';
 import { Switch } from "@/components/ui/switch";
 import ReportForm from "@/project-components/report-form.jsx";
+import React from "react";
 import { useEffect, useState, useRef } from "react";
 
-function Header({ className,DEFAULT_TIMER_SETTINGS,  timerSettings, onUpdateTimerSettings, isClockClicked, isClockRunning,
+function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS,  timerSettings, onUpdateTimerSettings, isClockClicked, isClockRunning,
                   onUpdateClockState, autoStart, onUpdateAutoStartState, onUpdateSessionRestarted, isSessionRestarted
                   , isReportOpen, onUpdateReportState}) {
   //States
@@ -177,5 +178,5 @@ function Header({ className,DEFAULT_TIMER_SETTINGS,  timerSettings, onUpdateTime
       </header>
     );
 }
-
+const Header = React.memo(HeaderComponent);
 export default Header;

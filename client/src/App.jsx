@@ -5,6 +5,18 @@ import Pomodoro from './project-components/pomodoro.jsx';
 import ToDoSection from "./project-components/to-do-section.jsx";
 import { getCurrentUserId, getOrCreateUser, updateUser } from "@/api/users.js";
 
+/*
+  Why React.memo is beneficial here?
+  Your App component has complex state management and passes many props to child components.
+  When the App re-renders (due to state changes), all child components re-render even if their specific props haven't changed.
+
+  When NOT to use React.memo:
+  1.Components that always receive different props
+  2.Very simple/cheap components
+  3.Components that rarely re-render
+  4. Root/top-level components such as App component
+*/
+
 // Default configuration constants
 const DEFAULT_TIMER_SETTINGS = {
   workTime: 25,
