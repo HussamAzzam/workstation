@@ -1,10 +1,11 @@
 import './App.css';
-import {useCallback, useEffect, useMemo, useState} from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import Header from './project-components/header.jsx';
 import Pomodoro from './project-components/pomodoro.jsx';
 import ToDoSection from "./project-components/to-do-section.jsx";
-import {getCurrentUserId, getOrCreateUser, updateUser} from "@/api/users.js";
+import { getCurrentUserId, getOrCreateUser, updateUser } from "@/api/users.js";
 
+// Default configuration constants
 const DEFAULT_TIMER_SETTINGS = {
   workTime: 25,
   shortBreakTime: 5,
@@ -14,11 +15,12 @@ const DEFAULT_TIMER_SETTINGS = {
 };
 
 const DEFAULT_PANELS = [
-  {name: "Pomodoro", sessions: 0},
-  {name: "Rest", sessions: 0},
-  {name: "Long Rest", sessions: 0}
+  { name: "Pomodoro", sessions: 0 },
+  { name: "Rest", sessions: 0 },
+  { name: "Long Rest", sessions: 0 }
 ];
 
+// Action types for user reducer
 const USER_ACTIONS = {
   SET_USER: 'SET_USER',
   UPDATE_SETTINGS: 'UPDATE_SETTINGS',
@@ -29,81 +31,124 @@ const USER_ACTIONS = {
   DELETE_ALL_TASKS: 'DELETE_ALL_TASKS',
   DELETE_COMPLETED_TASKS: 'DELETE_COMPLETED_TASKS',
   RESET_SESSION: 'RESET_SESSION',
-  ROLLBACK: 'ROLLBACK',
 };
 
+// User state reducer
 function userReducer(state, action) {
-  switch(action.type) {
-    case USER_ACTIONS.SET_USER: return {
+  switch (action.type) {
+    case USER_ACTIONS.SET_USER:
+      return {
+        ...action.payload
+      };
 
-    }
-    case USER_ACTIONS.UPDATE_SETTINGS: return {
+    case USER_ACTIONS.UPDATE_SETTINGS:
+      return {
+        ...state,
+        settings: { ...state.settings, ...action.payload }
+      };
 
-    }
-    case USER_ACTIONS.UPDATE_PANELS: return {
+    case USER_ACTIONS.UPDATE_PANELS:
+      const updatedPanels = [...state.panels];
+      if (updatedPanels[action.payload.index]) {
+        updatedPanels[action.payload.index] = {
+          ...updatedPanels[action.payload.index],
+          ...action.payload.data
+        };
+      }
+      return {
+        ...state,
+        panels: updatedPanels
+      };
 
-    }
-    case USER_ACTIONS.ADD_TASK: return {
+    case USER_ACTIONS.ADD_TASK:
+      return {
+        ...state,
+        tasks: [...state.tasks, action.payload]
+      };
 
-    }
-    case USER_ACTIONS.UPDATE_TASK: return {
+    case USER_ACTIONS.UPDATE_TASK:
+      const updatedTasks = [...state.tasks];
+      if (updatedTasks[action.payload.index]) {
+        updatedTasks[action.payload.index] = {
+          ...updatedTasks[action.payload.index],
+          ...action.payload.data
+        };
+      }
+      return {
+        ...state,
+        tasks: updatedTasks
+      };
 
-    }
-    case USER_ACTIONS.DELETED_TASK: return {
+    case USER_ACTIONS.DELETED_TASK:
+      return {
+        ...state,
+        tasks: state.tasks.filter((_, index) => index !== action.payload.index)
+      };
 
-    }
-    case USER_ACTIONS.DELETE_ALL_TASKS: return {
+    case USER_ACTIONS.DELETE_ALL_TASKS:
+      return {
+        ...state,
+        tasks: []
+      };
 
-    }
-    case USER_ACTIONS.DELETE_COMPLETED_TASKS: return {
+    case USER_ACTIONS.DELETE_COMPLETED_TASKS:
+      return {
+        ...state,
+        tasks: state.tasks.filter(task => !task.completed)
+      };
 
-    }
-    case USER_ACTIONS.RESET_SESSION: return {
+    case USER_ACTIONS.RESET_SESSION:
+      return {
+        ...state,
+        lastActive: Date.now(),
+        settings: DEFAULT_TIMER_SETTINGS,
+        panels: DEFAULT_PANELS,
+        tasks: []
+      };
 
-    }
-    case USER_ACTIONS.ROLLBACK: return {
-
-    }
-    default : return state;
-  };
-};
+    default:
+      return state;
+  }
+}
 
 function App() {
-  //States
-  const [isClockClicked, setIsClockClicked] = useState(false);
-  const [isClockRunning, setIsClockRunning] = useState(false);
-  const [isSessionRestarted, setIsSessionRestarted] = useState(false);
-  const [isReportOpen, setIsReportOpen] = useState(false);
-  const [user, setUser] = useState({
+  // Main user state using reducer
+  const [user, dispatch] = useReducer(userReducer, {
     settings: DEFAULT_TIMER_SETTINGS,
     panels: DEFAULT_PANELS,
     tasks: []
   });
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Component states
+  const [isClockClicked, setIsClockClicked] = useState(false);
+  const [isClockRunning, setIsClockRunning] = useState(false);
+  const [isSessionRestarted, setIsSessionRestarted] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
+  // Initialize app on mount
   useEffect(() => {
-    const loadUser = async() => {
+    const loadUser = async () => {
       const result = await initializeApp();
-      if(result.success) {
-        setUser(result.user);
+      if (result.success) {
+        dispatch({ type: USER_ACTIONS.SET_USER, payload: result.user });
       }
-      setIsLoading(false);
-    }
+    };
     loadUser();
-  },[] );
+  }, []);
 
-  //User handlers
-  const initializeApp = async() => {
+  // Initialize app and load user data
+  const initializeApp = async () => {
     try {
       const userResult = await getOrCreateUser();
-      if(userResult.success) {
+      if (userResult.success) {
         const userData = userResult.data;
+
         // Ensure settings have default values
         const settings = { ...DEFAULT_TIMER_SETTINGS, ...userData.settings };
         const panels = Array.isArray(userData.panels) ? userData.panels : [
-          {name: "Pomodoro", sessions: 0},
-          {name: "Rest", sessions: 0},
-          {name: "Long Rest", sessions: 0}
+          { name: "Pomodoro", sessions: 0 },
+          { name: "Rest", sessions: 0 },
+          { name: "Long Rest", sessions: 0 }
         ];
 
         return {
@@ -124,99 +169,93 @@ function App() {
     }
   };
 
-  const updateUserData = async(updates) => {
-    if(!user) {
-      console.log('No user found, returning early');
+  // Sync user data with backend
+  const syncUserData = async (updatedUser) => {
+    if (!user) {
+      console.log('No user found');
       return;
     }
 
     try {
-      // Store original user for rollback
-      const originalUser = user;
-
-      // Optimistic update - spread the updates properly
-      const updatedUser = {...user, ...updates};
-      setUser(updatedUser);
-
-      // Sync with backend
       const userId = getCurrentUserId();
-      const result = await updateUser(userId, updates);
+      const result = await updateUser(userId, updatedUser);
 
-      if(result.success) {
-        // Ensure the returned data has proper structure
-        const serverUser = {
-          ...result.data,
-          settings: { ...DEFAULT_TIMER_SETTINGS, ...result.data.settings },
-          panels: {...result.data.panels}
-        };
-        setUser(serverUser);
+      if (result.success) {
+        dispatch({ type: USER_ACTIONS.SET_USER, payload: result.data });
       } else {
-        // Rollback to original state
-        setUser(originalUser);
+        console.log("Failed to update user", result.error);
       }
-    } catch(e) {
-      // Rollback to original state on error
-      setUser(user);
+    } catch (e) {
+      console.log("Failed to update user", e.message);
     }
-  }
+  };
 
-  //Updaters
-  const updateTimerSettings = useCallback(async(newSettings) => {
-    const updatedSettings = {...user.settings, ...newSettings};
-    await updateUserData({settings: updatedSettings});
+  // Timer settings updaters
+  const updateTimerSettings = useCallback(async (newSettings) => {
+    dispatch({ type: USER_ACTIONS.UPDATE_SETTINGS, payload: { ...newSettings } });
+
+    const updatedUser = { ...user, settings: { ...user.settings, ...newSettings } };
+    await syncUserData(updatedUser);
   }, [user.settings]);
 
-  const updateAutoStartState = useCallback(async(autoStart) => {
-    const updatedSettings = {...user.settings, autoStart};
-    await updateUserData({settings: updatedSettings});
-  }, [autoStartEnabled]);
-  const updatePanels = useCallback(async(panelIndex, updatedPanelData) => {
-    const currentPanels = safeUserPanels;
+  const updateAutoStartState = useCallback(async (autoStartState) => {
+    dispatch({
+      type: USER_ACTIONS.UPDATE_SETTINGS,
+      payload: { ...user.settings, autoStart: autoStartState }
+    });
+
+    const updatedUser = {
+      ...user,
+      settings: { ...user.settings, autoStart: autoStartState }
+    };
+    await syncUserData(updatedUser);
+  }, [user.settings]);
+
+  // Panel updaters
+  const updatePanels = useCallback(async (panelIndex, updatedPanelData) => {
+    const panelsRollback = [...user.panels];
     try {
-      if(currentPanels[panelIndex]) {
-        currentPanels[panelIndex] = {...currentPanels[panelIndex], ...updatedPanelData};
+      dispatch({
+        type: USER_ACTIONS.UPDATE_PANELS,
+        payload: { index: panelIndex, data: updatedPanelData }
+      });
+
+      const currentPanels = safeUserPanels;
+      if (currentPanels[panelIndex]) {
+        currentPanels[panelIndex] = { ...currentPanels[panelIndex], ...updatedPanelData };
       }
-      await updateUserData({panels: currentPanels});
+      const updatedUser = { ...user, panels: currentPanels };
+      await syncUserData(updatedUser);
     } catch (e) {
+      dispatch({ type: USER_ACTIONS.SET_USER, payload: { ...user, panels: panelsRollback } });
       console.log(e.message);
     }
   }, [user.panels]);
+
+  // Clock state handlers
   const updateClockState = useCallback((state) => {
     setIsClockRunning(state);
-  }, [isClockRunning])
+  }, []);
 
-  const handleSessionRestart = useCallback(async() => {
+  const handleClockClick = useCallback(() => {
+    setIsClockClicked(!isClockClicked);
+  }, [isClockClicked]);
+
+  // Session restart handler
+  const handleSessionRestart = useCallback(async () => {
     try {
-      const userId = getCurrentUserId();
+      setIsSessionRestarted(true);
+      dispatch({ type: USER_ACTIONS.RESET_SESSION });
+
       const restedUser = {
         ...user,
         lastActive: Date.now(),
-        settings: {
-          workTime: 25,
-          shortBreakTime: 5,
-          longBreakTime: 15,
-          sessionsUntilLongBreak: 4,
-          autoStart: false,
-        },
-        panels: [
-          {
-            name: "Pomodoro",
-            sessions: 0,
-          },
-          {
-            name: "Rest",
-            sessions: 0,
-          },
-          {
-            name: "Long Rest",
-            sessions: 0,
-          },
-        ],
+        settings: DEFAULT_TIMER_SETTINGS,
+        panels: DEFAULT_PANELS,
         tasks: []
-      }
-      await updateUserData(restedUser);
-      setIsSessionRestarted(true);
-      console.log("user has reseted");
+      };
+      await syncUserData(restedUser);
+      console.log("user has rested");
     } catch (e) {
       console.error('Failed to restart session:', e);
       setIsLoading(false);
@@ -224,35 +263,67 @@ function App() {
       setIsSessionRestarted(false);
     }
   }, [isSessionRestarted]);
-  //Add task
-  const updateTasks = useCallback(async(task) => {
-    const currentTasks = [...user.tasks, task]
-    const updatedTasks = {tasks: currentTasks};
+
+  // Task management handlers
+  const updateTasks = useCallback(async (task) => {
     try {
-      await updateUserData(updatedTasks);
+      dispatch({ type: USER_ACTIONS.ADD_TASK, payload: task });
+
+      const currentTasks = [...user.tasks, task];
+      const updatedUser = { ...user, tasks: currentTasks };
+      await syncUserData(updatedUser);
     } catch (e) {
       console.log(e.message);
     }
   }, [user.tasks]);
-  //update task
-  const updateTaskData = useCallback(async(taskIndex, updatedTaskData) => {
-    const currentTasks = safeUserTasks
-    console.log(currentTasks);
-    if(currentTasks[taskIndex]) {
-      currentTasks[taskIndex] = {...currentTasks[taskIndex], ...updatedTaskData};
+
+  const updateTaskData = useCallback(async (taskIndex, updatedTaskData) => {
+    const tasksRollback = [...user.tasks];
+    try {
+      dispatch({
+        type: USER_ACTIONS.UPDATE_TASK,
+        payload: { index: taskIndex, data: updatedTaskData }
+      });
+
+      const currentTasks = safeUserTasks;
+      if (currentTasks[taskIndex]) {
+        currentTasks[taskIndex] = { ...currentTasks[taskIndex], ...updatedTaskData };
+      }
+      const updatedUser = { ...user, tasks: currentTasks };
+      await syncUserData(updatedUser);
+    } catch (e) {
+      dispatch({ type: USER_ACTIONS.SET_USER, payload: { ...user, tasks: tasksRollback } });
     }
-    const updatedTasks = {tasks: currentTasks};
-    await updateUserData(updatedTasks);
   }, [user.tasks]);
-  const deleteOneTask = useCallback(async(taskIndex) => {
-    const updatedTasks = safeUserTasks.filter((task, index) => index !== taskIndex);
-    await updateUserData({tasks:  updatedTasks });
-  }, [user.tasks])
-  const deleteAllTasks = useCallback(async() => {
-    await updateUserData({tasks: []});
-    //option 2:
+
+  const deleteOneTask = useCallback(async (taskIndex) => {
+    try {
+      dispatch({
+        type: USER_ACTIONS.DELETED_TASK,
+        payload: { index: taskIndex }
+      });
+
+      const updatedTasks = safeUserTasks.filter((task, index) => index !== taskIndex);
+      const updatedUser = { ...user, tasks: updatedTasks };
+      await syncUserData(updatedUser);
+    } catch (e) {
+      console.log(e.message);
+    }
+  }, [user.tasks]);
+
+  const deleteAllTasks = useCallback(async () => {
+    try {
+      dispatch({ type: USER_ACTIONS.DELETE_ALL_TASKS });
+
+      const updatedUser = { ...user, tasks: [] };
+      await syncUserData(updatedUser);
+    } catch (e) {
+      console.log(e.message);
+    }
+
+    // Alternative implementation using deleteOneTask:
     /*
-      const deleteAllTasks = async() => {
+    const deleteAllTasks = async() => {
       const currentTasks = safeUserTasks;
       const deletePromises = currentTasks.map((task, index) => {
         return deleteOneTask(index);
@@ -260,51 +331,54 @@ function App() {
 
       await Promise.all(deletePromises);
     }
-  */
-  }, [user.tasks])
-
-  const deleteCompletedTasks = useCallback(async() => {
-    const remainingTasks = user.tasks.filter(task => !task.completed);
-    await updateUserData({tasks: remainingTasks});
+    */
   }, [user.tasks]);
 
+  const deleteCompletedTasks = useCallback(async () => {
+    try {
+      dispatch({ type: USER_ACTIONS.DELETE_COMPLETED_TASKS });
+
+      const remainingTasks = user.tasks.filter(task => !task.completed);
+      const updatedUser = { ...user, tasks: remainingTasks };
+      await syncUserData(updatedUser);
+    } catch (e) {
+      console.log(e.message);
+    }
+  }, [user.tasks]);
+
+  // Report state handler
   const updateReportState = useCallback((state) => {
     setIsReportOpen(state);
   }, [isReportOpen]);
 
-  //Handlers
-  const handleClockClick = useCallback(() => {
-    setIsClockClicked(!isClockClicked);
-  }, [isClockClicked]);
-
-  //Memoized computed values
+  // Memoized computed values
   const autoStartEnabled = useMemo(() => {
     return user.settings?.autoStart || false;
   }, [user.settings?.autoStart]);
 
   const safeUserTasks = useMemo(() => {
-    return safeUserTasks;
+    return Array.isArray(user.tasks) ? [...user.tasks] : [];
   }, [user.tasks]);
 
   const safeUserPanels = useMemo(() => {
     return Array.isArray(user.panels) ? [...user.panels] : DEFAULT_PANELS;
-  }, []);
+  }, [user.panels]);
 
-  //Memoized components props
+  // Memoized component props
   const headerProps = useMemo(() => ({
-    className:`h-[60px] w-full `,
-    DEFAULT_TIMER_SETTINGS:DEFAULT_TIMER_SETTINGS,
-    timerSettings:user.settings,
-    autoStart:user.settings?.autoStart || false,
-    onUpdateTimerSettings:updateTimerSettings,
-    isClockClicked:isClockClicked,
-    isClockRunning:isClockRunning,
-    onUpdateClockState:updateClockState,
-    onUpdateAutoStartState:updateAutoStartState,
-    isSessionRestarted:isSessionRestarted,
-    onUpdateSessionRestarted:handleSessionRestart,
-    isReportOpen:isReportOpen,
-    onUpdateReportState:updateReportState
+    className: `h-[60px] w-full `,
+    DEFAULT_TIMER_SETTINGS: DEFAULT_TIMER_SETTINGS,
+    timerSettings: user.settings,
+    autoStart: user.settings?.autoStart || false,
+    onUpdateTimerSettings: updateTimerSettings,
+    isClockClicked: isClockClicked,
+    isClockRunning: isClockRunning,
+    onUpdateClockState: updateClockState,
+    onUpdateAutoStartState: updateAutoStartState,
+    isSessionRestarted: isSessionRestarted,
+    onUpdateSessionRestarted: handleSessionRestart,
+    isReportOpen: isReportOpen,
+    onUpdateReportState: updateReportState
   }), [
     user.settings,
     autoStartEnabled,
@@ -358,6 +432,7 @@ function App() {
     deleteAllTasks,
     deleteCompletedTasks,
   ]);
+
   return (
       <div className={`h-auto max-w-full sm:h-[100vh] flex flex-col `}>
         <Header {...headerProps} />
@@ -369,4 +444,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
