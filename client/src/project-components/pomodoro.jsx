@@ -1,10 +1,12 @@
 import React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
+import {TimerSettingsContext} from "@/App.jsx";
 import Clock from './clock.jsx';
 
 
-function PomodoroComponent({ className, timerSettings, onClockClick, isClockRunning, onUpdateClockState, autoStart, userPanels, onUpdatePanel, isSessionRestarted}) {
+function PomodoroComponent({ className, onClockClick, isClockRunning, onUpdateClockState, userPanels, onUpdatePanel, isSessionRestarted}) {
   //States
+  const {timerSettings, autoStart} = useContext(TimerSettingsContext);
   const safePanels = Array.isArray(userPanels) ? userPanels : [
     {name: "Pomodoro", sessions: 0},
     {name: "Rest", sessions: 0},

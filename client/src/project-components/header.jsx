@@ -2,19 +2,31 @@ import Logo from './logo.jsx';
 import { Switch } from "@/components/ui/switch";
 import ReportForm from "@/project-components/report-form.jsx";
 import React from "react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
+import {TimerSettingsContext} from "@/App.jsx";
 
-function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS,  timerSettings, onUpdateTimerSettings, isClockClicked, isClockRunning,
-                  onUpdateClockState, autoStart, onUpdateAutoStartState, onUpdateSessionRestarted, isSessionRestarted
+function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS, onUpdateTimerSettings, isClockClicked, isClockRunning,
+                  onUpdateClockState, onUpdateAutoStartState, onUpdateSessionRestarted, isSessionRestarted
                   , isReportOpen, onUpdateReportState}) {
   //States
+  const {timerSettings, autoStart} = useContext(TimerSettingsContext);
   const [tempTimerSettings, setTempTimerSettings] = useState(timerSettings);
   const [showSettings, setShowSettings] = useState(false);
 
   //Refs
   const settingsRef = useRef(null);
   const settingsButtonRef = useRef(null);
+  const dbSyncTimeoutRef = useRef(null);
 
+  const debouncedDbSync = (newSettings) => {
+    if(dbSyncTimeoutRef.current) {
+      clearTimeout(dbSyncTimeoutRef.current);
+    }
+
+    dbSyncTimeoutRef.current = setTimeout(() => {
+      onUpdateTimerSettings(newSettings)
+    }, 200);
+  }
   //Handlers
   const handleSettingsClick = () => {
     setShowSettings(!showSettings);
@@ -28,7 +40,7 @@ function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS,  timerSettings, onU
       [field]: parseInt(value)
     }
     setTempTimerSettings(newSettings);
-    await onUpdateTimerSettings(newSettings);a
+    debouncedDbSync(newSettings);
   }
   const handelRestartSession = () => {
     const message = "It will reset the counters of your pomodoros and rests, do you want to continue?";
@@ -73,7 +85,7 @@ function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS,  timerSettings, onU
   }, [isSessionRestarted]);
     return (
       <header
-        className={`flex justify-between items-center px-2 py-2 sm:px-6 sm:py-4 cursor-default  ${className}`}
+        className={`flex justify-between items-center px-2 py-2 sm:px-6 sm:py-4 cursor-default select-none  ${className}`}
       >
         <div className="left">
           <Logo />

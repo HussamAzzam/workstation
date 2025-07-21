@@ -1,5 +1,5 @@
 import './App.css';
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState, createContext } from "react";
 import Header from './project-components/header.jsx';
 import Pomodoro from './project-components/pomodoro.jsx';
 import ToDoSection from "./project-components/to-do-section.jsx";
@@ -45,6 +45,9 @@ const USER_ACTIONS = {
   RESET_SESSION: 'RESET_SESSION',
 };
 
+//Contexts
+export const TimerSettingsContext = createContext(DEFAULT_TIMER_SETTINGS);
+
 // User state reducer
 function userReducer(state, action) {
   switch (action.type) {
@@ -60,7 +63,7 @@ function userReducer(state, action) {
       };
 
     case USER_ACTIONS.UPDATE_PANELS:
-      const updatedPanels = [...state.panels];
+      { const updatedPanels = [...state.panels];
       if (updatedPanels[action.payload.index]) {
         updatedPanels[action.payload.index] = {
           ...updatedPanels[action.payload.index],
@@ -70,7 +73,7 @@ function userReducer(state, action) {
       return {
         ...state,
         panels: updatedPanels
-      };
+      }; }
 
     case USER_ACTIONS.ADD_TASK:
       return {
@@ -79,7 +82,7 @@ function userReducer(state, action) {
       };
 
     case USER_ACTIONS.UPDATE_TASK:
-      const updatedTasks = [...state.tasks];
+      { const updatedTasks = [...state.tasks];
       if (updatedTasks[action.payload.index]) {
         updatedTasks[action.payload.index] = {
           ...updatedTasks[action.payload.index],
@@ -89,7 +92,7 @@ function userReducer(state, action) {
       return {
         ...state,
         tasks: updatedTasks
-      };
+      }; }
 
     case USER_ACTIONS.DELETED_TASK:
       return {
@@ -270,7 +273,6 @@ function App() {
       console.log("user has rested");
     } catch (e) {
       console.error('Failed to restart session:', e);
-      setIsLoading(false);
     } finally {
       setIsSessionRestarted(false);
     }
@@ -305,6 +307,7 @@ function App() {
       await syncUserData(updatedUser);
     } catch (e) {
       dispatch({ type: USER_ACTIONS.SET_USER, payload: { ...user, tasks: tasksRollback } });
+      console.log(e.message);
     }
   }, [user.tasks]);
 
@@ -380,7 +383,6 @@ function App() {
   const headerProps = useMemo(() => ({
     className: `h-[60px] w-full `,
     DEFAULT_TIMER_SETTINGS: DEFAULT_TIMER_SETTINGS,
-    timerSettings: user.settings,
     autoStart: user.settings?.autoStart || false,
     onUpdateTimerSettings: updateTimerSettings,
     isClockClicked: isClockClicked,
@@ -392,7 +394,6 @@ function App() {
     isReportOpen: isReportOpen,
     onUpdateReportState: updateReportState
   }), [
-    user.settings,
     autoStartEnabled,
     updateTimerSettings,
     isClockClicked,
@@ -407,8 +408,6 @@ function App() {
 
   const pomodoroProps = useMemo(() => ({
     className: "max-w-full sm:w-[75%] h-full",
-    timerSettings: user.settings,
-    autoStart: autoStartEnabled,
     userPanels: safeUserPanels,
     onUpdatePanel: updatePanels,
     onClockClick: handleClockClick,
@@ -446,13 +445,15 @@ function App() {
   ]);
 
   return (
-      <div className={`h-auto max-w-full sm:h-[100vh] flex flex-col `}>
-        <Header {...headerProps} />
-        <div className="flex max-w-full flex-col sm:flex-row h-[calc(100%-60px-30px)]">
-          <Pomodoro {...pomodoroProps} />
-          <ToDoSection {...todoProps} />
+      <TimerSettingsContext.Provider value={{timerSettings: user.settings, autoStart: autoStartEnabled}}>
+        <div className={`h-auto max-w-full sm:h-[100vh] flex flex-col `}>
+          <Header {...headerProps} />
+          <div className="flex max-w-full flex-col sm:flex-row h-[calc(100%-60px-30px)]">
+            <Pomodoro {...pomodoroProps} />
+            <ToDoSection {...todoProps} />
+          </div>
         </div>
-      </div>
+      </TimerSettingsContext.Provider>
   );
 }
 
