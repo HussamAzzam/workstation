@@ -1,5 +1,8 @@
 import './App.css';
-import { useCallback, useEffect, useMemo, useReducer, useState, createContext } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState} from "react";
+import { ErrorBoundary as ReactErrorBoundaries } from 'react-error-boundaries';
+import { TimerSettingsContext , DEFAULT_TIMER_SETTINGS} from "@/contexts/timerSettingsContext.jsx";
+import { useClockState } from "@/hooks/useClockState.jsx";
 import Header from './project-components/header.jsx';
 import Pomodoro from './project-components/pomodoro.jsx';
 import ToDoSection from "./project-components/to-do-section.jsx";
@@ -17,14 +20,21 @@ import { getCurrentUserId, getOrCreateUser, updateUser } from "@/api/users.js";
   4. Root/top-level components such as App component
 */
 
-// Default configuration constants
-const DEFAULT_TIMER_SETTINGS = {
-  workTime: 25,
-  shortBreakTime: 5,
-  longBreakTime: 15,
-  sessionsUntilLongBreak: 4,
-  autoStart: false
-};
+//Error Boundaries 
+const ErrorFallback = (error, resetErrorBoundary) => {
+  return (
+      <div className={`flex flex-col justify-center items-center border border-blue-600`}>
+        <h3>Something went wrong!</h3>
+        <pre>{error.message}</pre>
+        <button
+            className={`text-white bg-blue-600 rounded-md hover:opacity-80 cursor-pointer`}
+            onClick={resetErrorBoundary}
+        >
+          Try again
+        </button>
+      </div>
+  )
+}
 
 const DEFAULT_PANELS = [
   { name: "Pomodoro", sessions: 0 },
@@ -52,32 +62,6 @@ const USER_ACTIONS = {
    The code will still work perfectly fine
    it's just a development-time warning to help maintain good practices for hot reloading.
 */
-// eslint-disable-next-line react-refresh/only-export-components
-export const TimerSettingsContext = createContext(DEFAULT_TIMER_SETTINGS);
-
-//Custom hooks
-// eslint-disable-next-line react-refresh/only-export-components
-export const useClockState = () => {
-  //States
-  const [isClockClicked, setIsClockClicked] = useState(false);
-  const [isClockRunning, setIsClockRunning] = useState(false);
-
-  // Clock state handlers
-  const updateClockState = useCallback((state) => {
-    setIsClockRunning(state);
-  }, []);
-
-  const handleClockClick = useCallback(() => {
-    setIsClockClicked(prev => !prev);
-  }, []);
-
-  return {
-    isClockClicked,
-    isClockRunning,
-    updateClockState,
-    handleClockClick
-  };
-};
 
 // User state reducer
 function userReducer(state, action) {
