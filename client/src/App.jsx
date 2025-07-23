@@ -46,7 +46,38 @@ const USER_ACTIONS = {
 };
 
 //Contexts
+/*
+  If you don't add this comment,
+  you'll likely see a warning in your editor and/or when running your linter.
+   The code will still work perfectly fine
+   it's just a development-time warning to help maintain good practices for hot reloading.
+*/
+// eslint-disable-next-line react-refresh/only-export-components
 export const TimerSettingsContext = createContext(DEFAULT_TIMER_SETTINGS);
+
+//Custom hooks
+// eslint-disable-next-line react-refresh/only-export-components
+export const useClockState = () => {
+  //States
+  const [isClockClicked, setIsClockClicked] = useState(false);
+  const [isClockRunning, setIsClockRunning] = useState(false);
+
+  // Clock state handlers
+  const updateClockState = useCallback((state) => {
+    setIsClockRunning(state);
+  }, []);
+
+  const handleClockClick = useCallback(() => {
+    setIsClockClicked(prev => !prev);
+  }, []);
+
+  return {
+    isClockClicked,
+    isClockRunning,
+    updateClockState,
+    handleClockClick
+  };
+};
 
 // User state reducer
 function userReducer(state, action) {
@@ -135,10 +166,10 @@ function App() {
   });
 
   // Component states
-  const [isClockClicked, setIsClockClicked] = useState(false);
-  const [isClockRunning, setIsClockRunning] = useState(false);
   const [isSessionRestarted, setIsSessionRestarted] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+
+  const {isClockClicked, isClockRunning ,updateClockState, handleClockClick} = useClockState();
 
   // Initialize app on mount
   useEffect(() => {
@@ -246,15 +277,6 @@ function App() {
       console.log(e.message);
     }
   }, [user.panels]);
-
-  // Clock state handlers
-  const updateClockState = useCallback((state) => {
-    setIsClockRunning(state);
-  }, []);
-
-  const handleClockClick = useCallback(() => {
-    setIsClockClicked(!isClockClicked);
-  }, [isClockClicked]);
 
   // Session restart handler
   const handleSessionRestart = useCallback(async () => {
@@ -385,10 +407,10 @@ function App() {
     DEFAULT_TIMER_SETTINGS: DEFAULT_TIMER_SETTINGS,
     autoStart: user.settings?.autoStart || false,
     onUpdateTimerSettings: updateTimerSettings,
+    onUpdateAutoStartState: updateAutoStartState,
     isClockClicked: isClockClicked,
     isClockRunning: isClockRunning,
     onUpdateClockState: updateClockState,
-    onUpdateAutoStartState: updateAutoStartState,
     isSessionRestarted: isSessionRestarted,
     onUpdateSessionRestarted: handleSessionRestart,
     isReportOpen: isReportOpen,

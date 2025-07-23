@@ -3,7 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import ReportForm from "@/project-components/report-form.jsx";
 import React from "react";
 import { useEffect, useState, useRef, useContext } from "react";
-import {TimerSettingsContext} from "@/App.jsx";
+import { TimerSettingsContext } from "@/App.jsx";
 
 function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS, onUpdateTimerSettings, isClockClicked, isClockRunning,
                   onUpdateClockState, onUpdateAutoStartState, onUpdateSessionRestarted, isSessionRestarted
@@ -70,9 +70,8 @@ function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS, onUpdateTimerSettin
   useEffect(() => {
     if(isClockClicked)
       setShowSettings(true);
-    else
-      setShowSettings(false);
   },[isClockClicked]);
+
   useEffect(() => {
     if(isSessionRestarted){
       setTempTimerSettings({
@@ -83,6 +82,7 @@ function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS, onUpdateTimerSettin
       })
     }
   }, [isSessionRestarted]);
+
     return (
       <header
         className={`flex justify-between items-center px-2 py-2 sm:px-6 sm:py-4 cursor-default select-none  ${className}`}

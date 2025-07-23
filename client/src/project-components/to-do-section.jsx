@@ -11,7 +11,7 @@ function ToDoSectionComponent({ className, userTasks, onUpdateTasks, onDeleteAll
   const [hideCompleted, setHideCompleted] = useState(false);
   const [editingTaskIndex, setEditingTaskIndex] = useState(null);
   const [newlyAddedTask, setNewlyAddedTask] = useState(new Set());
-  const [completedTasks, setCompletedTasks] = useState(new Set());
+  //const [completedTasks, setCompletedTasks] = useState(new Set());
 
   // Refs
   const dropDownRef = useRef(null);
@@ -36,6 +36,7 @@ function ToDoSectionComponent({ className, userTasks, onUpdateTasks, onDeleteAll
       setTasks(prevTasks => tasksWithIndexes);
     } catch(error) {
       setError("Failed to load tasks");
+      console.log(error.message)
     }
   };
 
