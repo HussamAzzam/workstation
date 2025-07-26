@@ -2,6 +2,8 @@ import './App.css';
 import { useCallback, useEffect, useMemo, useReducer, useState} from "react";
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 import { TimerSettingsContext , DEFAULT_TIMER_SETTINGS} from "@/contexts/timerSettingsContext.jsx";
+import { Provider } from "react-redux";
+import { store } from "./store"
 import { useClockState } from "@/hooks/useClockState.jsx";
 import Header from './project-components/header.jsx';
 import Pomodoro from './project-components/pomodoro.jsx';
@@ -82,14 +84,6 @@ const USER_ACTIONS = {
   DELETE_COMPLETED_TASKS: 'DELETE_COMPLETED_TASKS',
   RESET_SESSION: 'RESET_SESSION',
 };
-
-//Contexts
-/*
-  If you don't add this comment,
-  you'll likely see a warning in your editor and/or when running your linter.
-   The code will still work perfectly fine
-   it's just a development-time warning to help maintain good practices for hot reloading.
-*/
 
 // User state reducer
 function userReducer(state, action) {
@@ -485,6 +479,7 @@ function App() {
   ]);
 
   return (
+      <Provider store={store}>
         <TimerSettingsContext.Provider value={{timerSettings: user.settings, autoStart: autoStartEnabled}}>
           <div className={`h-auto max-w-full sm:h-[100vh] flex flex-col `}>
             <div className="h-[60px] w-full ">
@@ -522,6 +517,7 @@ function App() {
             </div>
           </div>
         </TimerSettingsContext.Provider>
+      </Provider>
   );
 }
 
