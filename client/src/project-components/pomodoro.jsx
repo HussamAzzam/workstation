@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect, useRef, useContext } from "react";
-import { TimerSettingsContext } from "@/App.jsx";
+import { TimerSettingsContext } from "@/contexts/timerSettingsContext.jsx";
 import Clock from './clock.jsx';
 
 

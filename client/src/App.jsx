@@ -1,6 +1,6 @@
 import './App.css';
 import { useCallback, useEffect, useMemo, useReducer, useState} from "react";
-import { ErrorBoundary as ReactErrorBoundaries } from 'react-error-boundaries';
+import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 import { TimerSettingsContext , DEFAULT_TIMER_SETTINGS} from "@/contexts/timerSettingsContext.jsx";
 import { useClockState } from "@/hooks/useClockState.jsx";
 import Header from './project-components/header.jsx';
@@ -20,14 +20,42 @@ import { getCurrentUserId, getOrCreateUser, updateUser } from "@/api/users.js";
   4. Root/top-level components such as App component
 */
 
-//Error Boundaries 
-const ErrorFallback = (error, resetErrorBoundary) => {
+//Error Boundaries
+const HeaderErrorFallback = ({error, resetErrorBoundary}) => {
   return (
-      <div className={`flex flex-col justify-center items-center border border-blue-600`}>
+      <div className={`flex gap-5 mt-2 justify-center items-center `}>
         <h3>Something went wrong!</h3>
         <pre>{error.message}</pre>
         <button
-            className={`text-white bg-blue-600 rounded-md hover:opacity-80 cursor-pointer`}
+            className={`text-white bg-blue-600 p-2  rounded-md hover:opacity-80 cursor-pointer`}
+            onClick={resetErrorBoundary}
+        >
+          Try again
+        </button>
+      </div>
+  )
+}
+const PomodoroErrorFallback = ({error, resetErrorBoundary}) => {
+  return (
+      <div className={`mt-20 flex flex-col justify-center items-center `}>
+        <h3>Something went wrong!</h3>
+        <pre>{error.message}</pre>
+        <button
+            className={`text-white bg-blue-600 p-2 rounded-md hover:opacity-80 cursor-pointer`}
+            onClick={resetErrorBoundary}
+        >
+          Try again
+        </button>
+      </div>
+  )
+}
+const TodoErrorFallback = ({error, resetErrorBoundary}) => {
+  return (
+      <div className={`mt-20 flex flex-col justify-center items-center `}>
+        <h3>Something went wrong!</h3>
+        <pre>{error.message}</pre>
+        <button
+            className={`text-white bg-blue-600 p-2 rounded-md hover:opacity-80 cursor-pointer`}
             onClick={resetErrorBoundary}
         >
           Try again
@@ -226,7 +254,7 @@ function App() {
 
     const updatedUser = { ...user, settings: { ...user.settings, ...newSettings } };
     await syncUserData(updatedUser);
-  }, [user.settings]);
+  }, [syncUserData, user]);
 
   const updateAutoStartState = useCallback(async (autoStartState) => {
     dispatch({
@@ -239,7 +267,7 @@ function App() {
       settings: { ...user.settings, autoStart: autoStartState }
     };
     await syncUserData(updatedUser);
-  }, [user.settings]);
+  }, [syncUserData, user]);
 
   // Panel updaters
   const updatePanels = useCallback(async (panelIndex, updatedPanelData) => {
@@ -250,7 +278,7 @@ function App() {
         payload: { index: panelIndex, data: updatedPanelData }
       });
 
-      const currentPanels = safeUserPanels;
+      const currentPanels = [...user.panels];
       if (currentPanels[panelIndex]) {
         currentPanels[panelIndex] = { ...currentPanels[panelIndex], ...updatedPanelData };
       }
@@ -260,7 +288,7 @@ function App() {
       dispatch({ type: USER_ACTIONS.SET_USER, payload: { ...user, panels: panelsRollback } });
       console.log(e.message);
     }
-  }, [user.panels]);
+  }, [syncUserData, user]);
 
   // Session restart handler
   const handleSessionRestart = useCallback(async () => {
@@ -282,7 +310,7 @@ function App() {
     } finally {
       setIsSessionRestarted(false);
     }
-  }, [isSessionRestarted]);
+  }, [syncUserData, user]);
 
   // Task management handlers
   const updateTasks = useCallback(async (task) => {
@@ -295,7 +323,7 @@ function App() {
     } catch (e) {
       console.log(e.message);
     }
-  }, [user.tasks]);
+  }, [syncUserData, user]);
 
   const updateTaskData = useCallback(async (taskIndex, updatedTaskData) => {
     const tasksRollback = [...user.tasks];
@@ -305,7 +333,7 @@ function App() {
         payload: { index: taskIndex, data: updatedTaskData }
       });
 
-      const currentTasks = safeUserTasks;
+      const currentTasks = [...user.tasks];
       if (currentTasks[taskIndex]) {
         currentTasks[taskIndex] = { ...currentTasks[taskIndex], ...updatedTaskData };
       }
@@ -315,7 +343,7 @@ function App() {
       dispatch({ type: USER_ACTIONS.SET_USER, payload: { ...user, tasks: tasksRollback } });
       console.log(e.message);
     }
-  }, [user.tasks]);
+  }, [syncUserData, user]);
 
   const deleteOneTask = useCallback(async (taskIndex) => {
     try {
@@ -324,13 +352,14 @@ function App() {
         payload: { index: taskIndex }
       });
 
-      const updatedTasks = safeUserTasks.filter((task, index) => index !== taskIndex);
+      const currentTasks = Array.isArray(user.tasks) ? [...user.tasks] : [];
+      const updatedTasks = currentTasks.filter((task, index) => index !== taskIndex);
       const updatedUser = { ...user, tasks: updatedTasks };
       await syncUserData(updatedUser);
     } catch (e) {
       console.log(e.message);
     }
-  }, [user.tasks]);
+  }, [user]);
 
   const deleteAllTasks = useCallback(async () => {
     try {
@@ -353,7 +382,7 @@ function App() {
       await Promise.all(deletePromises);
     }
     */
-  }, [user.tasks]);
+  }, [syncUserData, user]);
 
   const deleteCompletedTasks = useCallback(async () => {
     try {
@@ -365,29 +394,34 @@ function App() {
     } catch (e) {
       console.log(e.message);
     }
-  }, [user.tasks]);
+  }, [syncUserData, user]);
 
   // Report state handler
   const updateReportState = useCallback((state) => {
     setIsReportOpen(state);
-  }, [isReportOpen]);
+  }, []);
 
+  //Before Unload
+  useEffect(() => {
+   const handleBeforeUnload = (e) => {
+     if(isClockRunning) {
+       e.preventDefault();
+       e.returnValue = '';
+       return ''; //for old browsers
+     }
+   }
+     addEventListener("beforeunload", handleBeforeUnload);
+
+     return () => removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isClockRunning]);
   // Memoized computed values
   const autoStartEnabled = useMemo(() => {
     return user.settings?.autoStart || false;
   }, [user.settings?.autoStart]);
 
-  const safeUserTasks = useMemo(() => {
-    return Array.isArray(user.tasks) ? [...user.tasks] : [];
-  }, [user.tasks]);
-
-  const safeUserPanels = useMemo(() => {
-    return Array.isArray(user.panels) ? [...user.panels] : DEFAULT_PANELS;
-  }, [user.panels]);
-
   // Memoized component props
   const headerProps = useMemo(() => ({
-    className: `h-[60px] w-full `,
+    className: `h-full w-full `,
     DEFAULT_TIMER_SETTINGS: DEFAULT_TIMER_SETTINGS,
     autoStart: user.settings?.autoStart || false,
     onUpdateTimerSettings: updateTimerSettings,
@@ -413,8 +447,8 @@ function App() {
   ]);
 
   const pomodoroProps = useMemo(() => ({
-    className: "max-w-full sm:w-[75%] h-full",
-    userPanels: safeUserPanels,
+    className: "min-w-full sm:w-[75%] h-full",
+    userPanels: user.panels,
     onUpdatePanel: updatePanels,
     onClockClick: handleClockClick,
     isClockRunning,
@@ -423,8 +457,8 @@ function App() {
     onSessionRestarted: handleSessionRestart,
   }), [
     user.settings,
+    user.panels,
     autoStartEnabled,
-    safeUserPanels,
     updatePanels,
     handleClockClick,
     isClockRunning,
@@ -434,15 +468,15 @@ function App() {
   ]);
 
   const todoProps = useMemo(() => ({
-    className: "max-w-full sm:w-[25%] h-full border-l border-gray-300",
-    userTasks: safeUserTasks,
+    className: "min-h-full min-w-full",
+    userTasks: user.tasks,
     onUpdateTasks: updateTasks,
     onUpdateTaskData: updateTaskData,
     onDeleteOneTask: deleteOneTask,
     onDeleteAllTasks: deleteAllTasks,
     onDeleteCompletedTasks: deleteCompletedTasks,
   }), [
-    safeUserTasks,
+    user.tasks,
     updateTasks,
     updateTaskData,
     deleteOneTask,
@@ -451,15 +485,43 @@ function App() {
   ]);
 
   return (
-      <TimerSettingsContext.Provider value={{timerSettings: user.settings, autoStart: autoStartEnabled}}>
-        <div className={`h-auto max-w-full sm:h-[100vh] flex flex-col `}>
-          <Header {...headerProps} />
-          <div className="flex max-w-full flex-col sm:flex-row h-[calc(100%-60px-30px)]">
-            <Pomodoro {...pomodoroProps} />
-            <ToDoSection {...todoProps} />
+        <TimerSettingsContext.Provider value={{timerSettings: user.settings, autoStart: autoStartEnabled}}>
+          <div className={`h-auto max-w-full sm:h-[100vh] flex flex-col `}>
+            <div className="h-[60px] w-full ">
+              <ReactErrorBoundary
+                  FallbackComponent={HeaderErrorFallback}
+                  onReset={() => {
+                    window.location.reload();
+                  }}
+              >
+                <Header {...headerProps} />
+              </ReactErrorBoundary>
+            </div>
+            <div className="flex max-w-full flex-col sm:flex-row h-[calc(100%-60px-30px)]">
+              <div className="max-w-full sm:w-[75%] min-  h-full">
+                <ReactErrorBoundary
+                    FallbackComponent={PomodoroErrorFallback}
+                    onReset={() => {
+                      window.location.reload();
+                    }}
+                >
+                  <Pomodoro {...pomodoroProps} />
+                </ReactErrorBoundary>
+              </div>
+              <div className="max-w-full sm:w-[25%] min-h-full border-l border-gray-300">
+                <ReactErrorBoundary
+                    FallbackComponent={TodoErrorFallback}
+                    onReset={() => {
+                      window.location.reload();
+                    }}
+                >
+                  <ToDoSection {...todoProps} />
+                </ReactErrorBoundary>
+              </div>
+
+            </div>
           </div>
-        </div>
-      </TimerSettingsContext.Provider>
+        </TimerSettingsContext.Provider>
   );
 }
 

@@ -31,7 +31,6 @@ export const getOrCreateUser = async () => {
 
 export const getUserByCustomId = async (userId) => {
   try {
-    // This will call /users/:id endpoint
     const response = await axios.get(`${BASE_URL}/users/${userId}`);
     return { success: true, data: response.data };
   } catch (e) {
@@ -133,17 +132,12 @@ export const updateUser = async (userId, updatedData) => {
   }
 };
 
-export const clearUserData = () => {
-  localStorage.removeItem("pomodoroUserId");
-};
-
 export const getCurrentUserId = () => {
   return localStorage.getItem("pomodoroUserId");
 };
 
 export const deleteUser = async (userId) => {
   try {
-    // This will call /users/:id endpoint
     const response = await axios.delete(`${BASE_URL}/users/${userId}`);
     return { success: true, data: response.data };
   } catch (e) {

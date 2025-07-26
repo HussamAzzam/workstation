@@ -4,6 +4,7 @@
   "scripts": {
     "build": "npm run install:all && cd client && npm run build",
     "start": "cd server && npm start",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "cd client && npm run dev",
     "dev:server": "cd server && npm run dev",
     "install:client": "cd client && npm install",
@@ -12,5 +13,11 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+  "dependencies": {
+    "react-error-boundary": "^6.0.0"
   }
 }

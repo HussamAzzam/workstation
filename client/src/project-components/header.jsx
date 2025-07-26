@@ -3,11 +3,12 @@ import { Switch } from "@/components/ui/switch";
 import ReportForm from "@/project-components/report-form.jsx";
 import React from "react";
 import { useEffect, useState, useRef, useContext } from "react";
-import { TimerSettingsContext } from "@/App.jsx";
+import { TimerSettingsContext } from "@/contexts/timerSettingsContext.jsx";
 
 function HeaderComponent({ className,DEFAULT_TIMER_SETTINGS, onUpdateTimerSettings, isClockClicked, isClockRunning,
                   onUpdateClockState, onUpdateAutoStartState, onUpdateSessionRestarted, isSessionRestarted
                   , isReportOpen, onUpdateReportState}) {
+
   //States
   const {timerSettings, autoStart} = useContext(TimerSettingsContext);
   const [tempTimerSettings, setTempTimerSettings] = useState(timerSettings);
