@@ -5,15 +5,21 @@ import users from "./routes/users.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const frontendDomain = process.env.FRONTEND_DOMAIN || 'https://workstation-ten.vercel.app';
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: [frontendDomain, 'http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type'],
     credentials: true
 }));
 
 app.use(express.json());
+
+
+app.get('/', (req, res) => {
+    res.json({ message: 'Backend is running!', status: 'OK' });
+});
 
 // API routes
 app.use(users);

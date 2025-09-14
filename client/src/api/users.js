@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Use environment variables for production deployment
-const PORT = import.meta.env.VITE_PORT || 3000;
+const PORT =  'https://workstation-2.onrender.com';
 const BASE_URL = `http://localhost:${PORT}`;
 console.log(BASE_URL);
 
