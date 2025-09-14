@@ -1,9 +1,7 @@
 import axios from "axios";
 
 // Use environment variables for production deployment
-const PORT =  'https://workstation-2.onrender.com';
-const BASE_URL = `http://localhost:${PORT}`;
-console.log(BASE_URL);
+const BASE_URL = 'https://workstation-2.onrender.com';
 
 // Generate or retrieve user ID from localStorage
 export const getUserId = () => {
