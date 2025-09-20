@@ -8,13 +8,13 @@ const PORT = process.env.PORT || 3000;
 /*const frontendDomain = process.env.FRONTEND_DOMAIN || 'https://workstation-ten.vercel.app';*/
 
 app.use(cors({
-    origin: [
+    origin: true /*[
         'http://localhost:5173',
         'http://localhost:3000',
         'https://workstation-ten.vercel.app',
         'https://workstation-git-master-hussams-projects-c841285a.vercel.app',
         'https://workstation-py04ryxkw-hussams-projects-c841285a.vercel.app',
-    ],
+    ]*/,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type'],
     credentials: true
