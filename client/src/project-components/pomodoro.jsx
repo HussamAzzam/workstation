@@ -203,7 +203,7 @@ function PomodoroComponent({ className, onClockClick, isClockRunning, onUpdateCl
         if (activePanel.orderID === 0) {
           // Pomodoro session ended - switch to appropriate break
           const currentPomodoroSessions = updatedPanels.find(p => p.orderID === 0).sessions;
-          nextPanelId = currentPomodoroSessions % timerSettings.sessionsUntilLongBreak === 0 ? 2 : 1;
+          nextPanelId = currentPomodoroSessions % timerSettings.sessionsUntilLongBreak === 0 ? 1 : 2;
         } else {
           // Break session ended - switch back to Pomodoro
           nextPanelId = 0;
