@@ -64,6 +64,7 @@ function ReportForm({ isReportOpen, onUpdateReportState }) {
       const confirmationTemplate = import.meta.env.VITE_EMAILJS_CONFIRMATION_TEMPLATE_ID;
       const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
+      console.log(serviceId, reportTemplate, confirmationTemplate, publicKey)
       await emailjs.send(
           serviceId,
           reportTemplate,
@@ -72,13 +73,13 @@ function ReportForm({ isReportOpen, onUpdateReportState }) {
       );
 
       const userAckParams = {
-        email: formData.email,
+        email: formData.email || "anonymous@example.com",
         title: formData.title,
-        user_name: formData.email.split('@')[0],
+        user_name: formData.email ? formData.email.split('@')[0] : "Anonymous User",
         report_type: formData.reportType,
         ticket_id: ticketId,
         estimated_time: formData.reportType === "bug" ? "2-5 business days" : "1-2 weeks",
-        time_stamp: Date.now().toLocaleString()
+        time_stamp: new Date().toLocaleString()
       }
 
       await emailjs.send(
@@ -100,8 +101,12 @@ function ReportForm({ isReportOpen, onUpdateReportState }) {
         onUpdateReportState(false);
       }, 2000)
     } catch (e) {
-      console.log("Error: ", e.message);
-      setIsLoading(false);
+        console.log("Full error object: ", e);
+        console.log("Error message: ", e.message);
+        console.log("Error status: ", e.status);
+        console.log("Error text: ", e.text);
+        setIsLoading(false);
+        setProgressState("");
     }
   };
   const handleCansel = () => {
