@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Use environment variables for production deployment
 const PORT = import.meta.env.VITE_PORT || 3000;
-const BASE_URL = import.meta.env.VITE_API_URL || "https://workstation-2.onrender.com";
+const BASE_URL = "https://server-gcws.onrender.com";
 
 // Generate or retrieve user ID from localStorage
 export const getUserId = () => {
